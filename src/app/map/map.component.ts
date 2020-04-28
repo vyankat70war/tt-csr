@@ -15,7 +15,7 @@ export class MapComponent implements OnInit {
 
   ngOnInit() {
     this.map = tt.map({
-      key: '',
+      key: 'b5w0ip0dC0PPuyZ75hbmUPBcQK7IhO0V',
       container: 'map',
       style: 'tomtom://vector/1/basic-main',
       center: [73.778647, 18.6077501],
