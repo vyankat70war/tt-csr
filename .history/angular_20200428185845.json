@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "docs/",
+            "outputPath": "dist/tt-csr",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -23,9 +23,13 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.52.0/maps/maps.css",
+              "https://api.tomtom.com/maps-sdk-for-web/5.x/5.52.0/examples/pages/examples/assets/ui-library/index.css"
             ],
             "scripts": [
+              "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.52.0/maps/maps-web.min.js",
+              "https://api.tomtom.com/maps-sdk-for-web/5.x/5.52.0/examples/pages/examples/assets/js/mobile-or-tablet.js"
             ]
           },
           "configurations": {

@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "docs/",
+            "outputPath": "dist/tt-csr",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -24,8 +24,12 @@
             ],
             "styles": [
               "src/styles.css"
+              // "src/assets/css/index.css",
+              // "src/assets/css/maps.css"
             ],
             "scripts": [
+              // "src/assets/js/maps-web.min.js",
+              // "src/assets/js/mobile-or-tablet.js"
             ]
           },
           "configurations": {
