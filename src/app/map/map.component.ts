@@ -86,17 +86,24 @@ export class MapComponent implements OnInit {
     // Change the cursor to a pointer when the mouse is over the places layer.
     this.map.on('mouseenter', 'kitchen', function (e) {
       console.log(e);
-      const coordinates = e.features[0].geometry.coordinates.slice();
-      const properties = e.features[0].properties;
-      let html = '<table style="border:fill">';
-      Object.keys(properties).forEach(function(key) {
-        var value = properties[key];
-        html += '<tr><td>' + key + ': </td>' + '<td>' + value + '</td></tr>';
-      });
-      html += '</table>';
-
-      popup.setLngLat(coordinates).setHTML(html).addTo(that.map);
+      that.createPopup(e, popup, that);
     });
+    this.map.on('click', 'kitchen', function (e) {
+      console.log(e);
+      that.createPopup(e, popup, that);
+    });
+  }
+
+  private createPopup(e: any, popup: any, that: this) {
+    const coordinates = e.features[0].geometry.coordinates.slice();
+    const properties = e.features[0].properties;
+    let html = '<table style="border:fill">';
+    Object.keys(properties).forEach(function (key) {
+      const value = properties[key];
+      html += '<tr><td>' + key + ': </td>' + '<td>' + value + '</td></tr>';
+    });
+    html += '</table>';
+    popup.setLngLat(coordinates).setHTML(html).addTo(that.map);
   }
 
   public getSheetData(): Observable<any> {
