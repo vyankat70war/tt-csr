@@ -11,6 +11,11 @@ import { Observable } from 'rxjs';
 })
 export class MapComponent implements OnInit {
   map = null;
+  columns = ['fullnameofrequesterreferral', 'mobilenumberofrequesterreferral',
+              'foodrequiredlocationeglohegoanpune',
+              'no.ofpeoplerequirefoodacceptmorethan10only', 'foodrequirementisfor',
+              'pickuplocationforgroceries'
+            ];
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
@@ -30,18 +35,21 @@ export class MapComponent implements OnInit {
         trackUserLocation: true,
       })
     );
-    this.loadImages();
-    // this.getKitchenDetails();
+    this.map.on('load', () => this.loadImages());
+
     this.getSheetData().subscribe((resp) => {
       // console.log(resp);
+      const that = this;
       const features = [];
       const featuresPickup = [];
       const featuresFoodNeeded = [];
       resp.forEach((element) => {
         const props = {};
         Object.keys(element).forEach(function (key) {
-          const value = element[key];
-          props[key] = value;
+          if(that.columns.includes(key)) {
+            const value = element[key];
+            props[key] = value;
+          }
         });
         /* let lat;
         let lon;
@@ -84,7 +92,7 @@ export class MapComponent implements OnInit {
         type: 'FeatureCollection',
         features: features,
       };
-      const that = this;
+
       this.map.on('load', function () {
         that.plotLayer(that, 'kitchen', featureCollection);
         that.plotLayer(that, 'pickup', featureCollectionForPickup);
@@ -139,32 +147,45 @@ export class MapComponent implements OnInit {
     }
     that.map.addLayer({
       id: layerName,
-      type: 'circle',
+      type: 'symbol',
       source: layerName,
-      paint: {
-        'circle-radius': 10,
-        'circle-color': color,
+      // paint: {
+      // 'circle-radius': 10,
+      // 'circle-color': color,
+      // },
+      'layout' : {
+      'icon-image' : 'chef.png',
+      "icon-size": {
+      "base": 0.1,
+      "stops": [
+      [
+      16,
+      0.15
+      ],
+      [
+      20,
+      0.3
+      ]
+      ]
+      },
+      "icon-allow-overlap": true
       }
-      /* 'layout' : {
-        'icon-image' : 'chef.svg',
-        'icon-size' : 1
-      } */
-    });
+      });
   }
 
   private loadImages() {
-    const speedCamImgArray = ['chef.png'];
-    // tslint:disable-next-line: no-shadowed-variable
-    const map = this.map;
-    speedCamImgArray.forEach(function (speedCamImage) {
-      map.loadImage('assets/' + speedCamImage, function (error, image) {
-        if (error) {
-          throw error;
-        }
-        map.addImage(speedCamImage, image);
-      });
-    });
-  }
+ const speedCamImgArray = ['chef.png','restaurant.png'];
+ // tslint:disable-next-line: no-shadowed-variable
+ const map = this.map;
+ speedCamImgArray.forEach(speedCamImage => {
+ map.loadImage('assets/' + speedCamImage, (error, image) => {
+ if (error) {
+ throw error;
+ }
+ map.addImage(speedCamImage, image);
+ });
+ });
+}
   private createPopup(e: any, popup: any, that: this) {
 
     const coordinates = e.features[0].geometry.coordinates.slice();
