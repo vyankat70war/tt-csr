@@ -215,11 +215,11 @@ export class MapComponent implements OnInit {
 
   public getSheetData(): Observable<any> {
     const sheetId = '1Q6-7HysapeBawWJqHDyRCMDr0ZoX9nhlHvuldJ3fSiQ';
-    // const url = `https://spreadsheets.google.com/feeds/list/${sheetId}/2/public/values?alt=json`;
+    const url = `https://spreadsheets.google.com/feeds/list/${sheetId}/2/public/values?alt=json`;
     // const url =
       // 'https://spreadsheets.google.com/feeds/list/1Q6-7HysapeBawWJqHDyRCMDr0ZoX9nhlHvuldJ3fSiQ/1/public/values?alt=json';
 
-      const url = '../../assets/values.json';
+      // const url = '../../assets/values.json';
     return this.http.get(url).pipe(
       map((res: any) => {
         const data = res.feed.entry;
