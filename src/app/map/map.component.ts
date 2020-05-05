@@ -14,7 +14,7 @@ export class MapComponent implements OnInit {
   columns = ['fullnameofrequesterreferral', 'mobilenumberofrequesterreferral',
               'foodrequiredlocationeglohegoanpune',
               'no.ofpeoplerequirefoodacceptmorethan10only', 'foodrequirementisfor',
-              'pickuplocationforgroceries'
+              'pickuplocationforgroceries', 'timestamp', 'status', 'kitchenname'
             ];
   constructor(private http: HttpClient) {}
 
@@ -40,45 +40,39 @@ export class MapComponent implements OnInit {
     this.getSheetData().subscribe((resp) => {
       // console.log(resp);
       const that = this;
+      const requestFeatures = [];
       const features = [];
       const featuresPickup = [];
       const featuresFoodNeeded = [];
       resp.forEach((element) => {
         const props = {};
-        Object.keys(element).forEach(function (key) {
-          if(that.columns.includes(key)) {
-            const value = element[key];
-            props[key] = value;
-          }
-        });
-        /* let lat;
-        let lon;
-        if (element.foodrequiredlocationeglohegoanpune) {
-          this.http.get('https://api.tomtom.com/search/2/geocode/' + element.foodrequiredlocationeglohegoanpune +
-          '.json?key=b5w0ip0dC0PPuyZ75hbmUPBcQK7IhO0V&limit=1').subscribe(response => {
-            console.log(response);
-            if (response.results.length >= 1) {
-              lon = response.results[0].position.lon;
-              lat =  response.results[0].position.lat;
+        const date = new Date().getDate();
+        const recordDate = new Date(Date.parse(element.timestamp)).getDate();
+        if (date === recordDate ) {
+          Object.keys(element).forEach(function (key) {
+            if (that.columns.includes(key)) {
+              const value = element[key];
+              props[key] = value;
             }
           });
-        } */
-        const feature = {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [element.longitude, element.latitude],
-          },
-          properties: props,
-        };
-        if (element.pickuplocationforgroceries) {
-          featuresPickup.push(feature);
-        } else if (element.foodrequiredlocationeglohegoanpune) {
-          featuresFoodNeeded.push(feature);
-        } else {
-          features.push(feature);
+          const feature = {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [element.longitude, element.latitude],
+            },
+            properties: props,
+          };
+          if (element.kitchenname === 'K1') {
+            featuresPickup.push(feature);
+          } else if ((element.kitchenname === 'K2')) {
+            featuresFoodNeeded.push(feature);
+          } else if ((element.kitchenname === 'K3')) {
+            features.push(feature);
+          } else {
+            requestFeatures.push(feature);
+          }
         }
-        // console.log(feature);
       });
       const featureCollectionForPickup = {
         type: 'FeatureCollection',
@@ -93,10 +87,16 @@ export class MapComponent implements OnInit {
         features: features,
       };
 
+      const featureRequestCollection = {
+        type: 'FeatureCollection',
+        features: requestFeatures,
+      };
+
       this.map.on('load', function () {
-        that.plotLayer(that, 'kitchen', featureCollection);
-        that.plotLayer(that, 'pickup', featureCollectionForPickup);
-        that.plotLayer(that, 'foodneeded', featureCollectionForFoodNeeded);
+        that.plotLayer(that, 'K3', featureCollection);
+        that.plotLayer(that, 'K1', featureCollectionForPickup);
+        that.plotLayer(that, 'K2', featureCollectionForFoodNeeded);
+        that.plotLayer(that, 'request', featureRequestCollection);
       });
     });
 
@@ -104,29 +104,38 @@ export class MapComponent implements OnInit {
 
     const that = this;
     // Change the cursor to a pointer when the mouse is over the places layer.
-    this.map.on('mouseenter', 'kitchen', function (e) {
+    this.map.on('mouseenter', 'K3', function (e) {
       console.log(e);
       that.createPopup(e, popup, that);
     });
-    this.map.on('click', 'kitchen', function (e) {
-      console.log(e);
-      that.createPopup(e, popup, that);
-    });
-
-    this.map.on('mouseenter', 'pickup', function (e) {
-      console.log(e);
-      that.createPopup(e, popup, that);
-    });
-    this.map.on('click', 'pickup', function (e) {
+    this.map.on('click', 'K3', function (e) {
       console.log(e);
       that.createPopup(e, popup, that);
     });
 
-    this.map.on('mouseenter', 'foodneeded', function (e) {
+    this.map.on('mouseenter', 'K1', function (e) {
       console.log(e);
       that.createPopup(e, popup, that);
     });
-    this.map.on('click', 'foodneeded', function (e) {
+    this.map.on('click', 'K1', function (e) {
+      console.log(e);
+      that.createPopup(e, popup, that);
+    });
+
+    this.map.on('mouseenter', 'K2', function (e) {
+      console.log(e);
+      that.createPopup(e, popup, that);
+    });
+    this.map.on('click', 'K2', function (e) {
+      console.log(e);
+      that.createPopup(e, popup, that);
+    });
+
+    this.map.on('mouseenter', 'request', function (e) {
+      console.log(e);
+      that.createPopup(e, popup, that);
+    });
+    this.map.on('click', 'request', function (e) {
       console.log(e);
       that.createPopup(e, popup, that);
     });
@@ -137,14 +146,6 @@ export class MapComponent implements OnInit {
       type: 'geojson',
       data: featureCollection,
     });
-    let color;
-    if (layerName === 'foodneeded') {
-      color = '#FF0000';
-    } else if (layerName === 'pickup') {
-      color = '#00FF00';
-    } else {
-      color = '#0000FF';
-    }
     that.map.addLayer({
       id: layerName,
       type: 'symbol',
@@ -154,19 +155,19 @@ export class MapComponent implements OnInit {
       // 'circle-color': color,
       // },
       'layout' : {
-      'icon-image' : 'chef.png',
+      'icon-image' : layerName,
       "icon-size": {
-      "base": 0.1,
-      "stops": [
-      [
-      16,
-      0.15
-      ],
-      [
-      20,
-      0.3
-      ]
-      ]
+                "base": 0.1,
+                "stops": [
+                      [
+                      16,
+                      0.15
+                      ],
+                      [
+                      20,
+                      0.3
+                      ]
+                ]
       },
       "icon-allow-overlap": true
       }
@@ -174,11 +175,11 @@ export class MapComponent implements OnInit {
   }
 
   private loadImages() {
- const speedCamImgArray = ['chef.png','restaurant.png'];
+ const speedCamImgArray = ['K1', 'K2', 'K3', 'K4', 'request'];
  // tslint:disable-next-line: no-shadowed-variable
  const map = this.map;
  speedCamImgArray.forEach(speedCamImage => {
- map.loadImage('assets/' + speedCamImage, (error, image) => {
+ map.loadImage('assets/' + speedCamImage + '.png', (error, image) => {
  if (error) {
  throw error;
  }
@@ -213,11 +214,12 @@ export class MapComponent implements OnInit {
   }
 
   public getSheetData(): Observable<any> {
-    const sheetId = '1JH7kZCHjG5fytRsne1NvF_T3uyK_Qa-jV3EJH3D5Fd0';
-    const url = `https://spreadsheets.google.com/feeds/list/${sheetId}/od6/public/values?alt=json`;
+    const sheetId = '1Q6-7HysapeBawWJqHDyRCMDr0ZoX9nhlHvuldJ3fSiQ';
+    const url = `https://spreadsheets.google.com/feeds/list/${sheetId}/2/public/values?alt=json`;
     // const url =
-      // 'https://spreadsheets.google.com/feeds/list/1dlbj_KA5847UGjqHxCwZ3uDGNYo2sirros7sBaBcttM/od6/public/values?alt=json';
+      // 'https://spreadsheets.google.com/feeds/list/1Q6-7HysapeBawWJqHDyRCMDr0ZoX9nhlHvuldJ3fSiQ/1/public/values?alt=json';
 
+      // const url = '../../assets/values.json';
     return this.http.get(url).pipe(
       map((res: any) => {
         const data = res.feed.entry;
