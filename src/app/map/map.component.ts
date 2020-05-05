@@ -159,13 +159,13 @@ export class MapComponent implements OnInit {
       "icon-size": {
                 "base": 0.1,
                 "stops": [
-                      [
+                    [
                       16,
-                      0.15
+                      0.05
                       ],
                       [
                       20,
-                      0.3
+                      0.08
                       ]
                 ]
       },
