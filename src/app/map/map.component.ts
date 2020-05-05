@@ -48,7 +48,7 @@ export class MapComponent implements OnInit {
         const props = {};
         const date = new Date().getDate();
         const recordDate = new Date(Date.parse(element.timestamp)).getDate();
-        if (date === recordDate ) {
+        if (recordDate === (date - 1) || recordDate === date ) {
           Object.keys(element).forEach(function (key) {
             if (that.columns.includes(key)) {
               const value = element[key];
@@ -215,11 +215,11 @@ export class MapComponent implements OnInit {
 
   public getSheetData(): Observable<any> {
     const sheetId = '1Q6-7HysapeBawWJqHDyRCMDr0ZoX9nhlHvuldJ3fSiQ';
-    const url = `https://spreadsheets.google.com/feeds/list/${sheetId}/2/public/values?alt=json`;
+    // const url = `https://spreadsheets.google.com/feeds/list/${sheetId}/2/public/values?alt=json`;
     // const url =
       // 'https://spreadsheets.google.com/feeds/list/1Q6-7HysapeBawWJqHDyRCMDr0ZoX9nhlHvuldJ3fSiQ/1/public/values?alt=json';
 
-      // const url = '../../assets/values.json';
+      const url = '../../assets/values.json';
     return this.http.get(url).pipe(
       map((res: any) => {
         const data = res.feed.entry;
