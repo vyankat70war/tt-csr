@@ -129,7 +129,7 @@ constructor(private http: HttpClient) {}
       const date = new Date().getDate();
       const recordDate = new Date(Date.parse(element.timestamp)).getDate();
       if (typeof element.longitude !== 'undefined') {
-        props['latlong']=element.longitude +''+ element.latitude;
+     //   props['latlong']=element.longitude +''+ element.latitude;
         Object.keys(element).forEach(function (key) {
           if (that.columns.includes(key)) {
             const value = element[key];
