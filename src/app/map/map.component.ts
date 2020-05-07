@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import tt from '@tomtom-international/web-sdk-maps';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -16,6 +16,13 @@ export class MapComponent implements OnInit {
               'no.ofpeoplerequirefoodacceptmorethan10only', 'foodrequirementisfor',
               'pickuplocationforgroceries', 'timestamp', 'status', 'kitchenname'
             ];
+  dataLoaded = new Subject<boolean>();
+
+  featureCollectionForPickup: { type: string; features: any[]; };
+  featureCollectionForFoodNeeded: { type: string; features: any[]; };
+  featureCollection: { type: string; features: any[]; };
+  featureRequestCollection: { type: string; features: any[]; };
+  
   constructor(private http: HttpClient) {}
 
   ngOnInit() {
@@ -35,69 +42,21 @@ export class MapComponent implements OnInit {
         trackUserLocation: true,
       })
     );
-    this.map.on('load', () => this.loadImages());
+    
+      this.onMapLoad();
 
     this.getSheetData().subscribe((resp) => {
-      // console.log(resp);
+      console.log("sheet data response:");
       const that = this;
       const requestFeatures = [];
       const features = [];
       const featuresPickup = [];
       const featuresFoodNeeded = [];
-      resp.forEach((element) => {
-        const props = {};
-        const date = new Date().getDate();
-        const recordDate = new Date(Date.parse(element.timestamp)).getDate();
-        if (recordDate === (date - 1) || recordDate === date ) {
-          Object.keys(element).forEach(function (key) {
-            if (that.columns.includes(key)) {
-              const value = element[key];
-              props[key] = value;
-            }
-          });
-          const feature = {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [element.longitude, element.latitude],
-            },
-            properties: props,
-          };
-          if (element.kitchenname === 'K1') {
-            featuresPickup.push(feature);
-          } else if ((element.kitchenname === 'K2')) {
-            featuresFoodNeeded.push(feature);
-          } else if ((element.kitchenname === 'K3')) {
-            features.push(feature);
-          } else {
-            requestFeatures.push(feature);
-          }
-        }
-      });
-      const featureCollectionForPickup = {
-        type: 'FeatureCollection',
-        features: featuresPickup,
-      };
-      const featureCollectionForFoodNeeded = {
-        type: 'FeatureCollection',
-        features: featuresFoodNeeded,
-      };
-      const featureCollection = {
-        type: 'FeatureCollection',
-        features: features,
-      };
 
-      const featureRequestCollection = {
-        type: 'FeatureCollection',
-        features: requestFeatures,
-      };
+      this.processSheetDataResponse(resp, that, featuresPickup, featuresFoodNeeded, features, requestFeatures);
+      this.populateFeatures(featuresPickup, featuresFoodNeeded, features, requestFeatures);
 
-      this.map.on('load', function () {
-        that.plotLayer(that, 'K3', featureCollection);
-        that.plotLayer(that, 'K1', featureCollectionForPickup);
-        that.plotLayer(that, 'K2', featureCollectionForFoodNeeded);
-        that.plotLayer(that, 'request', featureRequestCollection);
-      });
+      this.dataLoaded.next(true);
     });
 
     const popup = new tt.Popup();
@@ -139,6 +98,74 @@ export class MapComponent implements OnInit {
       console.log(e);
       that.createPopup(e, popup, that);
     });
+  }
+
+  private populateFeatures(featuresPickup: any[], featuresFoodNeeded: any[], features: any[], requestFeatures: any[]) {
+    this.featureCollectionForPickup = {
+      type: 'FeatureCollection',
+      features: featuresPickup,
+    };
+    this.featureCollectionForFoodNeeded = {
+      type: 'FeatureCollection',
+      features: featuresFoodNeeded,
+    };
+    this.featureCollection = {
+      type: 'FeatureCollection',
+      features: features,
+    };
+    this.featureRequestCollection = {
+      type: 'FeatureCollection',
+      features: requestFeatures,
+    };
+  }
+
+  private processSheetDataResponse(resp: any, that: this, featuresPickup: any[], featuresFoodNeeded: any[], features: any[], requestFeatures: any[]) {
+    resp.forEach((element) => {
+      const props = {};
+      const date = new Date().getDate();
+      const recordDate = new Date(Date.parse(element.timestamp)).getDate();
+      if (recordDate === (date - 3) || recordDate === date) {
+        Object.keys(element).forEach(function (key) {
+          if (that.columns.includes(key)) {
+            const value = element[key];
+            props[key] = value;
+          }
+        });
+        const feature = {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [element.longitude, element.latitude],
+          },
+          properties: props,
+        };
+        if (element.kitchenname === 'K1') {
+          featuresPickup.push(feature);
+        }
+        else if ((element.kitchenname === 'K2')) {
+          featuresFoodNeeded.push(feature);
+        }
+        else if ((element.kitchenname === 'K3')) {
+          features.push(feature);
+        }
+        else {
+          requestFeatures.push(feature);
+        }
+      }
+    });
+  }
+
+  onMapLoad() {
+        this.map.on('load', () => {
+          this.loadImages();
+
+          this.dataLoaded.subscribe(dataLoad => {
+            this.plotLayer(this, 'K3', this.featureCollection);
+            this.plotLayer(this, 'K1', this.featureCollectionForPickup);
+            this.plotLayer(this, 'K2', this.featureCollectionForFoodNeeded);
+            this.plotLayer(this, 'request', this.featureRequestCollection);
+          });
+        });
   }
 
   private plotLayer(that: this, layerName: string, featureCollection: { type: string; features: any[]; }) {
