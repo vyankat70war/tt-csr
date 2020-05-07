@@ -1,29 +1,32 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import{Component, OnInit, ViewEncapsulation}from '@angular/core';
 import tt from '@tomtom-international/web-sdk-maps';
-import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import { Observable, Subject } from 'rxjs';
+import {HttpClient}from '@angular/common/http';
+import {map}from 'rxjs/operators';
+import {Observable, Subject}from 'rxjs';
 @Component({
-  selector: 'app-map',
-  templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css'],
-  encapsulation: ViewEncapsulation.None,
+selector: 'app-map',
+templateUrl: './map.component.html',
+styleUrls: ['./map.component.css'],
+encapsulation: ViewEncapsulation.None,
 })
 export class MapComponent implements OnInit {
-  map = null;
-  columns = ['fullnameofrequesterreferral', 'mobilenumberofrequesterreferral',
-              'foodrequiredlocationeglohegoanpune',
-              'no.ofpeoplerequirefoodacceptmorethan10only', 'foodrequirementisfor',
-              'pickuplocationforgroceries', 'timestamp', 'status', 'kitchenname'
-            ];
-  dataLoaded = new Subject<boolean>();
+map = null;
+columns = [
+'no.ofpeoplerequirefoodacceptmorethan10only', 'foodrequirementisfor',
+'pickuplocationforgroceries', 'status', 'kitchenname'
+];
+dataLoaded = new Subject<boolean>();
 
-  featureCollectionForPickup: { type: string; features: any[]; };
-  featureCollectionForFoodNeeded: { type: string; features: any[]; };
-  featureCollection: { type: string; features: any[]; };
-  featureRequestCollection: { type: string; features: any[]; };
-  
-  constructor(private http: HttpClient) {}
+featureCollectionForPickup: {type: string; features: any[];
+};
+featureCollectionForFoodNeeded: { type: string; features: any[];
+};
+featureCollection: {type: string; features: any[];
+};
+featureRequestCollection: {type: string; features: any[];
+};
+
+constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.map = tt.map({
@@ -42,7 +45,7 @@ export class MapComponent implements OnInit {
         trackUserLocation: true,
       })
     );
-    
+
       this.onMapLoad();
 
     this.getSheetData().subscribe((resp) => {
@@ -120,17 +123,21 @@ export class MapComponent implements OnInit {
   }
 
   private processSheetDataResponse(resp: any, that: this, featuresPickup: any[], featuresFoodNeeded: any[], features: any[], requestFeatures: any[]) {
+   const arr=[]
     resp.forEach((element) => {
       const props = {};
       const date = new Date().getDate();
       const recordDate = new Date(Date.parse(element.timestamp)).getDate();
-      if (recordDate === (date - 3) || recordDate === date) {
+      if (typeof element.longitude !== 'undefined') {
+        props['latlong']=element.longitude +''+ element.latitude;
         Object.keys(element).forEach(function (key) {
           if (that.columns.includes(key)) {
             const value = element[key];
             props[key] = value;
           }
         });
+
+       //console.log(props)
         const feature = {
           type: 'Feature',
           geometry: {
@@ -139,6 +146,7 @@ export class MapComponent implements OnInit {
           },
           properties: props,
         };
+        arr.push(feature)
         if (element.kitchenname === 'K1') {
           featuresPickup.push(feature);
         }
@@ -153,6 +161,20 @@ export class MapComponent implements OnInit {
         }
       }
     });
+
+//TODO
+
+const finaldict={}
+const groupBy = function(xs, key) {
+  return xs.reduce(function(rv, x) {
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {});
+};
+
+console.log(arr)
+//console.log(groupBy(arr, latlong))
+
   }
 
   onMapLoad() {
